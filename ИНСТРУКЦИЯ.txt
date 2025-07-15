@@ -1,0 +1,55 @@
+ИНСТРУКЦИЯ ПО ИСПОЛЬЗОВАНИЮ OpenTimeInstrument
+================================================
+
+1. УСТАНОВКА ЗАВИСИМОСТЕЙ
+---------------------------
+sudo apt-get update
+sudo apt-get install -y build-essential libgtk2.0-dev
+
+2. СБОРКА ПРОГРАММЫ
+-------------------
+make all
+
+3. НАСТРОЙКА TIME CARD
+----------------------
+echo IN: TS1 >> /sys/class/timecard/ocp0/sma1
+echo IN: TS2 >> /sys/class/timecard/ocp0/sma2
+echo IN: TS3 >> /sys/class/timecard/ocp0/sma3
+echo IN: TS4 >> /sys/class/timecard/ocp0/sma4
+
+4. ОСНОВНЫЕ КОМАНДЫ
+-------------------
+# Бесконечное измерение
+./OpenTimeInstrument -d /dev/ptp1 -e -1
+
+# Измерение 100 событий
+./OpenTimeInstrument -d /dev/ptp1 -e 100
+
+# Показать возможности устройства
+./OpenTimeInstrument -d /dev/ptp1 -c
+
+# Получить время PTP
+./OpenTimeInstrument -d /dev/ptp1 -g
+
+5. УЛУЧШЕННЫЙ CLI ИНТЕРФЕЙС
+----------------------------
+# Создайте файл cli_enhanced.c с кодом из документации
+gcc -o cli_enhanced cli_enhanced.c
+./cli_enhanced
+
+6. GUI ИНТЕРФЕЙС
+----------------
+# Создайте файл gui_simple.c с кодом из документации
+gcc -o gui_simple gui_simple.c `pkg-config --cflags --libs gtk+-2.0`
+./gui_simple
+
+7. УСТРАНЕНИЕ НЕПОЛАДОК
+-----------------------
+# Устройство недоступно
+sudo chmod 666 /dev/ptp1
+
+# Ошибка настройки Time Card
+sudo chmod 666 /sys/class/timecard/ocp0/sma*
+
+# Ошибки сборки
+sudo apt-get install build-essential libgtk2.0-dev
