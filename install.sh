@@ -53,13 +53,13 @@ else
     echo "✓ pkg-config уже установлен"
 fi
 
-# Проверка и установка GTK2
-if ! pkg-config --exists gtk+-2.0; then
+# Проверка и установка GTK3
+if ! pkg-config --exists gtk+-3.0; then
     echo "Установка GTK2..."
-    apt-get install -y libgtk2.0-dev
-    print_status $? "GTK2 установлен"
+    apt-get install -y libgtk3.0-dev
+    print_status $? "GTK3 установлен"
 else
-    echo "✓ GTK2 уже установлен"
+    echo "✓ GTK3 уже установлен"
 fi
 
 # Сборка программы
@@ -83,7 +83,7 @@ cat > Makefile_enhanced << 'EOF'
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99
 LIBS = -lrt
-GTK_LIBS = `pkg-config --cflags --libs gtk+-2.0`
+GTK_LIBS = `pkg-config --cflags --libs gtk+-3.0`
 
 all: OpenTimeInstrument cli_interface gui_interface
 
@@ -94,7 +94,7 @@ cli_interface: CLI_INTERFACE.c
 	$(CC) $(CFLAGS) $(LIBS) CLI_INTERFACE.c -o cli_interface
 
 gui_interface: GUI_INTERFACE.c
-	$(CC) $(CFLAGS) $(GTK_LIBS) GUI_INTERFACE.c -o gui_interface
+	$(CC) $(CFLAGS) GUI_INTERFACE.c $(GTK_LIBS) -o gui_interface
 
 install-deps:
 	sudo apt-get update
@@ -342,7 +342,7 @@ sudo ./install.sh
 ```bash
 # Установка зависимостей
 sudo apt-get update
-sudo apt-get install -y build-essential libgtk2.0-dev
+sudo apt-get install -y build-essential libgtk3.0-dev
 
 # Сборка
 make -f Makefile_enhanced all
@@ -406,7 +406,7 @@ sudo chmod 666 /sys/class/timecard/ocp0/sma*
 
 ### Ошибки сборки
 ```bash
-sudo apt-get install build-essential libgtk2.0-dev
+sudo apt-get install build-essential libgtk3.0-dev
 ```
 
 ## Формат выходных данных
