@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# PTP CLI - Удобный интерфейс для работы с PTP устройствами
+# Обертка вокруг CLI_INTERFACE для OpenTimeInstrument
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLI_INTERFACE="$SCRIPT_DIR/cli_interface"
+
+# Проверяем, существует ли CLI интерфейс
+if [ ! -f "$CLI_INTERFACE" ]; then
+    echo "Ошибка: CLI интерфейс не найден в $CLI_INTERFACE"
+    echo "Запустите 'make -f Makefile_CLI' для компиляции"
+    exit 1
+fi
+
+# Проверяем права на выполнение
+if [ ! -x "$CLI_INTERFACE" ]; then
+    echo "Ошибка: CLI интерфейс не является исполняемым файлом"
+    chmod +x "$CLI_INTERFACE"
+fi
+
+# Функция для проверки прав root
+check_root_access() {
+    if [ "$EUID" -ne 0 ]; then
+        echo "Внимание: Для работы с PTP устройствами могут потребоваться права root"
+        echo "Если команда не работает, запустите:"
+        echo "  sudo $0 $*"
+        echo ""
+    fi
+}
+
+# Функция справки
+show_help() {
+    echo "PTP CLI - Интерфейс командной строки для работы с PTP устройствами"
+    echo ""
+    echo "Быстрые команды:"
+    echo "  $0 list                    # показать доступные PTP устройства"
+    echo "  $0 info [N]                # показать информацию о PTP устройстве N (по умолчанию 0)"
+    echo "  $0 time [N]                # получить время с PTP устройства N"
+    echo "  $0 sync [N]                # синхронизировать PTP устройство с системным временем"
+    echo ""
+    echo "Расширенное использование:"
+    echo "  $0 [--ptp N] [опции]       # передать опции напрямую OpenTimeInstrument"
+    echo ""
+    echo "Примеры:"
+    echo "  $0 list                    # список устройств"
+    echo "  $0 info 0                  # информация о /dev/ptp0"
+    echo "  $0 time 1                  # время с /dev/ptp1"
+    echo "  $0 --ptp 0 -k 5            # измерить смещение времени 5 раз"
+    echo ""
+    echo "Для полной справки: $0 --help"
+}
+
+# Обработка быстрых команд
+case "$1" in
+    "list"|"-l"|"--list")
+        check_root_access
+        exec "$CLI_INTERFACE" --list-devices
+        ;;
+    "info"|"-i")
+        PTP_NUM="${2:-0}"
+        check_root_access
+        echo "Информация о PTP устройстве $PTP_NUM:"
+        exec "$CLI_INTERFACE" --ptp "$PTP_NUM" -c
+        ;;
+    "time"|"-t")
+        PTP_NUM="${2:-0}"
+        check_root_access
+        echo "Время с PTP устройства $PTP_NUM:"
+        exec "$CLI_INTERFACE" --ptp "$PTP_NUM" -g
+        ;;
+    "sync"|"-s")
+        PTP_NUM="${2:-0}"
+        if [ "$EUID" -ne 0 ]; then
+            echo "Для синхронизации времени требуются права root"
+            echo "Запустите: sudo $0 sync $PTP_NUM"
+            exit 1
+        fi
+        echo "Синхронизация PTP устройства $PTP_NUM с системным временем..."
+        exec "$CLI_INTERFACE" --ptp "$PTP_NUM" -s
+        ;;
+    "help"|"-h"|"--help"|"")
+        if [ -z "$1" ]; then
+            show_help
+        else
+            exec "$CLI_INTERFACE" --help
+        fi
+        ;;
+    *)
+        # Передаем все остальные аргументы напрямую CLI интерфейсу
+        check_root_access
+        exec "$CLI_INTERFACE" "$@"
+        ;;
+esac
