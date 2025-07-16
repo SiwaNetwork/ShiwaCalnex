@@ -1,0 +1,40 @@
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -std=c99
+LDFLAGS = 
+
+# Цели
+all: cli_interface OpenTimeInstrument
+
+cli_interface: CLI_INTERFACE.c
+	$(CC) $(CFLAGS) -o cli_interface CLI_INTERFACE.c $(LDFLAGS)
+
+OpenTimeInstrument: OpenTimeInstrument.c
+	$(CC) $(CFLAGS) -o OpenTimeInstrument OpenTimeInstrument.c $(LDFLAGS) -lrt -lm
+
+clean:
+	rm -f cli_interface OpenTimeInstrument
+
+install: all
+	sudo cp cli_interface /usr/local/bin/
+	sudo cp OpenTimeInstrument /usr/local/bin/
+	sudo cp ptp-cli /usr/local/bin/
+	sudo chmod +x /usr/local/bin/cli_interface
+	sudo chmod +x /usr/local/bin/OpenTimeInstrument
+	sudo chmod +x /usr/local/bin/ptp-cli
+	@echo "Установка завершена!"
+	@echo "Теперь вы можете использовать команды:"
+	@echo "  ptp-cli list        # список PTP устройств"
+	@echo "  ptp-cli info N      # информация о устройстве N"
+	@echo "  ptp-cli time N      # время с устройства N"
+	@echo "  ptp-cli --help      # полная справка"
+
+uninstall:
+	sudo rm -f /usr/local/bin/cli_interface
+	sudo rm -f /usr/local/bin/OpenTimeInstrument
+	sudo rm -f /usr/local/bin/ptp-cli
+
+test: cli_interface
+	./cli_interface --help
+	./cli_interface --list-devices
+
+.PHONY: all clean install uninstall test
