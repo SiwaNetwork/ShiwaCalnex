@@ -44,6 +44,16 @@
             background-color: #dc3545;
         }
         
+        .measurement-active {
+            background-color: #28a745 !important;
+            color: white !important;
+        }
+        
+        .measurement-inactive {
+            background-color: #6c757d !important;
+            color: white !important;
+        }
+        
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -308,10 +318,13 @@
         
         // Update graphs with new data
         function updateGraphs() {
+            console.log('Updating graphs...');
+            
             // Update real-time graph with all channels
             const realtimeTraces = [];
             for (let channel = 1; channel <= 4; channel++) {
                 if (channelData[channel].values.length > 0) {
+                    console.log(`Channel ${channel} data:`, channelData[channel].values.length, 'points');
                     realtimeTraces.push({
                         x: channelData[channel].timestamps,
                         y: channelData[channel].values,
@@ -324,7 +337,16 @@
                 }
             }
             
-            Plotly.redraw('realtime-graph', realtimeTraces);
+            if (realtimeTraces.length > 0) {
+                Plotly.react('realtime-graph', realtimeTraces, {
+                    title: 'Все каналы',
+                    xaxis: { title: 'Время' },
+                    yaxis: { title: 'TIE (наносекунды)' },
+                    showlegend: true,
+                    autosize: true,
+                    margin: { l: 50, r: 50, t: 50, b: 50 }
+                });
+            }
             
             // Update individual channel graphs
             for (let channel = 1; channel <= 4; channel++) {
@@ -338,7 +360,14 @@
                         marker: { size: 4 }
                     }];
                     
-                    Plotly.redraw(`channel${channel}-graph`, trace);
+                    Plotly.react(`channel${channel}-graph`, trace, {
+                        title: `Канал ${channel}`,
+                        xaxis: { title: 'Время' },
+                        yaxis: { title: 'TIE (наносекунды)' },
+                        showlegend: false,
+                        autosize: true,
+                        margin: { l: 50, r: 50, t: 50, b: 50 }
+                    });
                 }
             }
         }
@@ -447,8 +476,25 @@
                 if (data.success) {
                     measurementActive = true;
                     document.getElementById('start-btn').disabled = true;
+                    document.getElementById('start-btn').className = 'btn btn-success measurement-active';
                     document.getElementById('stop-btn').disabled = false;
+                    document.getElementById('stop-btn').className = 'btn btn-danger';
                     document.getElementById('status-text').textContent = 'Измерения активны';
+                    
+                    // Clear previous data
+                    for (let channel = 1; channel <= 4; channel++) {
+                        channelData[channel] = {
+                            values: [],
+                            timestamps: [],
+                            stats: { count: 0, min: null, max: null, avg: 0 }
+                        };
+                    }
+                    
+                    // Initialize graphs
+                    updateGraphs();
+                    updateStatistics();
+                    
+                    console.log('Measurement started successfully');
                 } else {
                     alert('Ошибка запуска измерений: ' + (data.error || 'Неизвестная ошибка'));
                 }
@@ -469,7 +515,9 @@
                 if (data.success) {
                     measurementActive = false;
                     document.getElementById('start-btn').disabled = false;
+                    document.getElementById('start-btn').className = 'btn btn-primary';
                     document.getElementById('stop-btn').disabled = true;
+                    document.getElementById('stop-btn').className = 'btn btn-secondary measurement-inactive';
                     document.getElementById('status-text').textContent = 'Измерения остановлены';
                 }
             })
@@ -506,6 +554,42 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeGraphs();
             updateStatistics();
+            
+            // Start periodic data updates if WebSocket is not working
+            setInterval(function() {
+                if (measurementActive) {
+                    fetch('/api/measurement_data')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Received data update:', Object.keys(data));
+                            // Update channel data from server
+                            let hasNewData = false;
+                            for (let channel = 1; channel <= 4; channel++) {
+                                const channelKey = `channel_${channel}`;
+                                if (data[channelKey] && data[channelKey].values) {
+                                    const newValues = data[channelKey].values;
+                                    const newTimestamps = data[channelKey].timestamps.map(t => new Date(t));
+                                    
+                                    // Check if we have new data
+                                    if (newValues.length !== channelData[channel].values.length) {
+                                        hasNewData = true;
+                                        console.log(`Channel ${channel} new data:`, newValues.length - channelData[channel].values.length, 'new points');
+                                    }
+                                    
+                                    channelData[channel].values = newValues;
+                                    channelData[channel].timestamps = newTimestamps;
+                                    channelData[channel].stats = data[channelKey].stats;
+                                }
+                            }
+                            
+                            if (hasNewData) {
+                                updateGraphs();
+                                updateStatistics();
+                            }
+                        })
+                        .catch(error => console.error('Error fetching data:', error));
+                }
+            }, 500); // Update every 500ms for smoother animation
         });
     </script>
 </body>

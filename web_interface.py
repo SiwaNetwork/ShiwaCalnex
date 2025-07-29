@@ -137,6 +137,7 @@ def monitor_measurements():
                             stats['avg'] = sum(measurement_data[channel_key]) / len(measurement_data[channel_key])
                         
                         # Emit real-time data via WebSocket
+                        print(f"Emitting WebSocket event: channel={channel}, value={value}")
                         socketio.emit('measurement_update', {
                             'channel': channel,
                             'value': value,
@@ -162,8 +163,8 @@ def start_measurement(device_path):
             # Start demo data generator
             cmd = ['python3', 'demo_data_generator.py']
         else:
-            # Start OpenTimeInstrument
-            cmd = ['./OpenTimeInstrument', '-d', device_path, '-e', '1,2,3,4']
+            # Start OpenTimeInstrument with continuous measurement
+            cmd = ['./OpenTimeInstrument', '-d', device_path, '-e', '-1']
         
         measurement_process = subprocess.Popen(
             cmd,
@@ -322,6 +323,6 @@ if __name__ == '__main__':
     os.makedirs('static', exist_ok=True)
     
     try:
-        socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+        socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
     finally:
         stop_measurement()
