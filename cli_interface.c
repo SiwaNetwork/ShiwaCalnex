@@ -1,1 +1,0 @@
-// CLI интерфейс для OpenTimeInstrument
