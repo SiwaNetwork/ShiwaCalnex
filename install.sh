@@ -85,7 +85,7 @@ CFLAGS = -Wall -Wextra -std=c99
 LIBS = -lrt
 GTK_LIBS = `pkg-config --cflags --libs gtk+-3.0`
 
-all: OpenTimeInstrument cli_interface gui_interface
+all: OpenTimeInstrument cli_interface
 
 OpenTimeInstrument: OpenTimeInstrument.c
 	$(CC) $(CFLAGS) $(LIBS) OpenTimeInstrument.c -o OpenTimeInstrument
@@ -93,22 +93,19 @@ OpenTimeInstrument: OpenTimeInstrument.c
 cli_interface: CLI_INTERFACE.c
 	$(CC) $(CFLAGS) $(LIBS) CLI_INTERFACE.c -o cli_interface
 
-gui_interface: GUI_INTERFACE.c
-	$(CC) $(CFLAGS) GUI_INTERFACE.c $(GTK_LIBS) -o gui_interface
 
 install-deps:
 	sudo apt-get update
 	sudo apt-get install -y build-essential libgtk2.0-dev
 
 clean:
-	rm -f OpenTimeInstrument cli_interface gui_interface *.log
+	rm -f OpenTimeInstrument cli_interface *.log
 
 help:
 	@echo "Доступные цели:"
 	@echo "  all          - собрать все версии"
 	@echo "  OpenTimeInstrument - оригинальная программа"
 	@echo "  cli_interface - улучшенный CLI интерфейс"
-	@echo "  gui_interface - простой GUI интерфейс"
 	@echo "  install-deps - установить зависимости"
 	@echo "  clean        - очистить сборку"
 	@echo "  help         - показать эту справку"

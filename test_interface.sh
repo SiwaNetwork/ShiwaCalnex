@@ -19,7 +19,7 @@ print_status() {
 # Проверка наличия файлов
 echo "1. Проверка наличия файлов..."
 
-REQUIRED_FILES=("OpenTimeInstrument" "cli_interface" "gui_interface")
+REQUIRED_FILES=("OpenTimeInstrument" "cli_interface")
 for file in "${REQUIRED_FILES[@]}"; do
     if [ -f "$file" ]; then
         echo "✓ $file найден"
@@ -72,27 +72,6 @@ else
     print_status $? "CLI интерфейс работает"
 fi
 
-# Тест GUI интерфейса
-echo ""
-echo "5. Тест GUI интерфейса..."
-
-echo "Проверка GTK..."
-if pkg-config --exists gtk+-2.0; then
-    echo "✓ GTK2 доступен"
-    
-    echo "Запуск GUI интерфейса (тест окна)..."
-    timeout 3s ./gui_interface > /dev/null 2>&1 &
-    GUI_PID=$!
-    sleep 2
-    if kill -0 $GUI_PID 2>/dev/null; then
-        kill $GUI_PID
-        echo "✓ GUI интерфейс запускается"
-    else
-        echo "✗ GUI интерфейс не запускается"
-    fi
-else
-    echo "✗ GTK2 недоступен"
-fi
 
 # Тест скриптов
 echo ""
@@ -174,12 +153,6 @@ else
     echo "  ✗ Не готов"
 fi
 
-echo "GUI интерфейс:"
-if [ -f "gui_interface" ] && [ -x "gui_interface" ] && pkg-config --exists gtk+-2.0; then
-    echo "  ✓ Готов к использованию"
-else
-    echo "  ✗ Не готов"
-fi
 
 echo "Скрипты:"
 if [ -f "setup_timecard.sh" ] && [ -x "setup_timecard.sh" ]; then

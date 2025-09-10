@@ -27,14 +27,13 @@ print_status() {
 echo "1. Остановка процессов..."
 pkill -f OpenTimeInstrument 2>/dev/null || true
 pkill -f cli_interface 2>/dev/null || true
-pkill -f gui_interface 2>/dev/null || true
 print_status 0 "Процессы остановлены"
 
 # Удаление исполняемых файлов
 echo ""
 echo "2. Удаление исполняемых файлов..."
 
-EXECUTABLES=("OpenTimeInstrument" "cli_interface" "gui_interface")
+EXECUTABLES=("OpenTimeInstrument" "cli_interface")
 for file in "${EXECUTABLES[@]}"; do
     if [ -f "$file" ]; then
         rm -f "$file"
@@ -48,7 +47,7 @@ done
 echo ""
 echo "3. Удаление исходных файлов интерфейсов..."
 
-SOURCE_FILES=("CLI_INTERFACE.c" "GUI_INTERFACE.c" "Makefile_enhanced")
+SOURCE_FILES=("CLI_INTERFACE.c" "Makefile_enhanced")
 for file in "${SOURCE_FILES[@]}"; do
     if [ -f "$file" ]; then
         rm -f "$file"

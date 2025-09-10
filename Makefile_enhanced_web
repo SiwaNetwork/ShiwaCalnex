@@ -7,7 +7,7 @@ GTK_LIBS = $(shell pkg-config --libs gtk+-2.0)
 # Python executable
 PYTHON = python3
 
-all: OpenTimeInstrument cli_interface gui_interface gui_interface_enhanced check-web-deps
+all: OpenTimeInstrument cli_interface check-web-deps
 
 OpenTimeInstrument: OpenTimeInstrument.c
 	$(CC) $(CFLAGS) $(LIBS) OpenTimeInstrument.c -o OpenTimeInstrument
@@ -15,11 +15,6 @@ OpenTimeInstrument: OpenTimeInstrument.c
 cli_interface: CLI_INTERFACE.c
 	$(CC) $(CFLAGS) $(LIBS) CLI_INTERFACE.c -o cli_interface
 
-gui_interface: GUI_INTERFACE.c
-	$(CC) $(CFLAGS) $(GTK_CFLAGS) GUI_INTERFACE.c $(GTK_LIBS) -o gui_interface
-
-gui_interface_enhanced: GUI_INTERFACE_ENHANCED.c
-	$(CC) $(CFLAGS) $(GTK_CFLAGS) GUI_INTERFACE_ENHANCED.c $(GTK_LIBS) -o gui_interface_enhanced
 
 check-web-deps:
 	@echo "Проверка зависимостей для веб-интерфейса..."
@@ -38,20 +33,13 @@ run-web:
 	@echo "Откройте браузер и перейдите по адресу: http://localhost:5000"
 	$(PYTHON) web_interface.py
 
-run-gui:
-	@echo "Запуск расширенного GUI интерфейса..."
-	./gui_interface_enhanced
-
-run-gui-basic:
-	@echo "Запуск базового GUI интерфейса..."
-	./gui_interface
 
 run-cli:
 	@echo "Запуск CLI интерфейса..."
 	./cli_interface
 
 clean:
-	rm -f OpenTimeInstrument cli_interface gui_interface gui_interface_enhanced *.log
+	rm -f OpenTimeInstrument cli_interface *.log
 	rm -rf __pycache__ *.pyc
 	rm -f tie_measurements_*.csv
 
@@ -60,15 +48,11 @@ help:
 	@echo "  all               - собрать все программы"
 	@echo "  OpenTimeInstrument - основная программа"
 	@echo "  cli_interface     - CLI интерфейс"
-	@echo "  gui_interface     - базовый GUI интерфейс"
-	@echo "  gui_interface_enhanced - расширенный GUI с графиками"
 	@echo "  install-deps      - установить системные зависимости"
 	@echo "  install-web-deps  - установить зависимости для веб-интерфейса"
 	@echo "  check-web-deps    - проверить зависимости веб-интерфейса"
 	@echo "  run-web           - запустить веб-интерфейс"
-	@echo "  run-gui           - запустить расширенный GUI"
-	@echo "  run-gui-basic     - запустить базовый GUI"
 	@echo "  run-cli           - запустить CLI интерфейс"
 	@echo "  clean             - удалить собранные файлы"
 
-.PHONY: all install-deps install-web-deps check-web-deps run-web run-gui run-gui-basic run-cli clean help
+.PHONY: all install-deps install-web-deps check-web-deps run-web run-cli clean help
